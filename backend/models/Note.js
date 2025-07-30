@@ -1,12 +1,16 @@
 import mongoose from 'mongoose';
 
-const noteSchema = new mongoose.Schema(
-  {
-    text: { type: String, default: '' },
-    userEmail: { type: String, required: true },
+const noteSchema = new mongoose.Schema({
+  user: {
+    type: mongoose.Schema.Types.ObjectId,
+    required: true,
+    ref: 'User'
   },
-  { timestamps: true }
-);
+  text: {
+    type: String,
+    required: true
+  }
+}, { timestamps: true });
 
 const Note = mongoose.model('Note', noteSchema);
 export default Note;

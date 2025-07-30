@@ -11,45 +11,69 @@ function Users() {
 
   const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
-  useEffect(() => {
-    const userData = JSON.parse(localStorage.getItem('hd_user'));
-    if (userData) {
-      setUser({ name: userData.name || '', email: userData.email || '' });
+  const getAuthToken = () =>
+    localStorage.getItem('token') || sessionStorage.getItem('token');
+
+ useEffect(() => {
+  const userDataString = localStorage.getItem('hd_user') || sessionStorage.getItem('hd_user');
+  if (userDataString) {
+    const userData = JSON.parse(userDataString);
+    setUser({ name: userData.name ?? '', email: userData.email ?? '' });
+  }
+  fetchNotes();
+}, []);
+
+
+const fetchNotes = async () => {
+  try {
+    const token = getAuthToken();
+    const { data } = await axios.get(`${BACKEND_URL}/api/notes`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    setNotes(data.reverse().map(note => ({ ...note, isSaved: true })));
+  } catch (error) {
+    if (error.response?.status === 401) {
+      toast.error('Session expired. Please log in again.');
+      localStorage.removeItem('token');
+      localStorage.removeItem('hd_user');
+      sessionStorage.removeItem('token');
+      sessionStorage.removeItem('hd_user');
+      window.location.href = '/login';
+      return;
     }
-
-    fetchNotes();
-  }, []);
-
-  const fetchNotes = async () => {
-    try {
-      const userData = JSON.parse(localStorage.getItem('hd_user'));
-      const { data } = await axios.get(`${BACKEND_URL}/api/notes`, {
-        params: { userEmail: userData?.email },
-      });
-
-      setNotes(data.reverse().map(note => ({ ...note, isSaved: true })));
-    } catch (error) {
-      console.error('Error fetching notes:', error);
-      toast.error('Failed to load notes');
-    }
-  };
+    console.error('Error fetching notes:', error);
+    toast.error('Failed to load notes');
+  }
+};
 
   const handleCreateNote = async () => {
-    try {
-      const userData = JSON.parse(localStorage.getItem('hd_user'));
+  try {
+    const token = getAuthToken();
+    console.log('Token:', token);
 
-      const { data } = await axios.post(`${BACKEND_URL}/api/notes`, {
-        text: '',
-        userEmail: userData?.email,
-      });
-
-      setNotes([{ ...data, isSaved: false }, ...notes]);
-      setExpandedNoteIndex(0);
-    } catch (error) {
-      console.error('Error creating note:', error);
-      toast.error('Failed to create note');
+    if (!token) {
+      toast.error('Token missing. Please log in again.');
+      return;
     }
-  };
+
+    const { data } = await axios.post(
+      `${BACKEND_URL}/api/notes`,
+      { text: 'New note' },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    setNotes([{ ...data, isSaved: false }, ...notes]);
+    setExpandedNoteIndex(0);
+  } catch (error) {
+    console.error('Error creating note:', error?.response?.data || error);
+    toast.error('Failed to create note');
+  }
+};
+
 
   const handleNoteChange = (index, value) => {
     const updated = [...notes];
@@ -59,10 +83,18 @@ function Users() {
 
   const handleSaveNote = async (index) => {
     try {
+      const token = getAuthToken();
       const noteToUpdate = notes[index];
-      await axios.put(`${BACKEND_URL}/api/notes/${noteToUpdate._id}`, {
-        text: noteToUpdate.text,
-      });
+
+      await axios.put(
+        `${BACKEND_URL}/api/notes/${noteToUpdate._id}`,
+        { text: noteToUpdate.text },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
       const updated = [...notes];
       updated[index].isSaved = true;
@@ -75,9 +107,16 @@ function Users() {
   };
 
   const handleDeleteNote = async (index) => {
-    const noteToDelete = notes[index];
     try {
-      await axios.delete(`${BACKEND_URL}/api/notes/${noteToDelete._id}`);
+      const token = getAuthToken();
+      const noteToDelete = notes[index];
+
+      await axios.delete(`${BACKEND_URL}/api/notes/${noteToDelete._id}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
       const updated = notes.filter((_, i) => i !== index);
       setNotes(updated);
       toast.success('Note deleted!');

@@ -75,8 +75,13 @@ function Login() {
           otp: formData.otp,
         });
 
+        const payload = jwtDecode(token);
+        console.log('JWT Payload:', payload);
+
+
         if (keepLoggedIn) {
           localStorage.setItem('token', res.data.token);
+          console.log(res.data.token)
           localStorage.setItem('hd_user', JSON.stringify(res.data.user));
         } else {
           sessionStorage.setItem('token', res.data.token);
