@@ -1,4 +1,4 @@
-# Notes App - MERN Stack with TypeScript
+# Noteverse App - MERN Stack 
 
 This is a full-stack notes-taking application built with the MERN stack (MongoDB, Express.js, React, Node.js). The app supports login via Gmail OTP and Google OAuth. Users can create, view, and delete their personal notes after authentication.
 
@@ -10,7 +10,7 @@ This is a full-stack notes-taking application built with the MERN stack (MongoDB
 - Protected API routes using JWT
 - Responsive UI using Tailwind CSS
 - MongoDB Atlas for database storage
-- Built with TypeScript for type safety
+
 
 ## Tech Stack
 
