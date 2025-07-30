@@ -9,6 +9,8 @@ function Users() {
   const [user, setUser] = useState({ name: '', email: '' });
   const [expandedNoteIndex, setExpandedNoteIndex] = useState(null);
 
+  const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+
   useEffect(() => {
     const userData = JSON.parse(localStorage.getItem('hd_user'));
     if (userData) {
@@ -21,7 +23,7 @@ function Users() {
   const fetchNotes = async () => {
     try {
       const userData = JSON.parse(localStorage.getItem('hd_user'));
-      const { data } = await axios.get('http://localhost:5000/api/notes', {
+      const { data } = await axios.get(`${BACKEND_URL}/api/notes`, {
         params: { userEmail: userData?.email },
       });
 
@@ -36,7 +38,7 @@ function Users() {
     try {
       const userData = JSON.parse(localStorage.getItem('hd_user'));
 
-      const { data } = await axios.post('http://localhost:5000/api/notes', {
+      const { data } = await axios.post(`${BACKEND_URL}/api/notes`, {
         text: '',
         userEmail: userData?.email,
       });
@@ -58,7 +60,7 @@ function Users() {
   const handleSaveNote = async (index) => {
     try {
       const noteToUpdate = notes[index];
-      await axios.put(`http://localhost:5000/api/notes/${noteToUpdate._id}`, {
+      await axios.put(`${BACKEND_URL}/api/notes/${noteToUpdate._id}`, {
         text: noteToUpdate.text,
       });
 
@@ -75,7 +77,7 @@ function Users() {
   const handleDeleteNote = async (index) => {
     const noteToDelete = notes[index];
     try {
-      await axios.delete(`http://localhost:5000/api/notes/${noteToDelete._id}`);
+      await axios.delete(`${BACKEND_URL}/api/notes/${noteToDelete._id}`);
       const updated = notes.filter((_, i) => i !== index);
       setNotes(updated);
       toast.success('Note deleted!');
@@ -124,8 +126,7 @@ function Users() {
 
         {notes.length === 0 ? (
           <p className="text-gray-500 text-center mt-4">
-            No notes yet .Create your first note now !
-           
+            No notes yet. Create your first note now!
           </p>
         ) : (
           notes.map((note, index) => (
