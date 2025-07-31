@@ -39,62 +39,74 @@ function Login() {
     setFormData((prev) => ({ ...prev, [id]: value }));
   };
 
-  const handleOtpClick = async () => {
-    if (!showOtpInput) {
-      if (isSignup) {
-        if (!formData.name || !formData.dob || !formData.email) {
-          toast.error('Please fill all required fields!');
-          return;
-        }
-      } else {
-        if (!formData.email) {
-          toast.error('Please enter your email!');
-          return;
-        }
-      }
-
-      try {
-        await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/auth/send-otp`, {
-          email: formData.email,
-          ...(isSignup && {
-            name: formData.name,
-            dob: formData.dob,
-          }),
-        });
-
-        toast.success('OTP sent to your email!');
-        setShowOtpInput(true);
-        setResendTimer(30);
-      } catch (error) {
-        toast.error(error.response?.data?.message || 'Failed to send OTP');
+const handleOtpClick = async () => {
+  if (!showOtpInput) {
+    if (isSignup) {
+      if (!formData.name || !formData.dob || !formData.email) {
+        toast.error('Please fill all required fields!');
+        return;
       }
     } else {
+      if (!formData.email) {
+        toast.error('Please enter your email!');
+        return;
+      }
+
       try {
-        const res = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/auth/verify-otp`, {
-          email: formData.email,
-          otp: formData.otp,
+        const res = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/auth/check-user`, {
+          email: formData.email
         });
-
-        const payload = jwtDecode(res.data.token);
-        console.log('JWT Payload:', payload);
-
-
-        if (keepLoggedIn) {
-          localStorage.setItem('token', res.data.token);
-          console.log(res.data.token)
-          localStorage.setItem('hd_user', JSON.stringify(res.data.user));
-        } else {
-          sessionStorage.setItem('token', res.data.token);
-          sessionStorage.setItem('hd_user', JSON.stringify(res.data.user));
+        if (!res.data.exists) {
+          toast.error('No account found. Please sign up first.');
+          return;
         }
-
-        toast.success('Login successful!');
-        setTimeout(() => navigate('/'), 1000);
-      } catch (error) {
-        toast.error(error.response?.data?.message || 'OTP verification failed');
+      } catch {
+        toast.error('Error checking user.');
+        return;
       }
     }
-  };
+
+    try {
+      await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/auth/send-otp`, {
+        email: formData.email,
+        ...(isSignup && {
+          name: formData.name,
+          dob: formData.dob,
+        }),
+      });
+
+      toast.success('OTP sent to your email!');
+      setShowOtpInput(true);
+      setResendTimer(30);
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to send OTP');
+    }
+  } else {
+    try {
+      const res = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/auth/verify-otp`, {
+        email: formData.email,
+        otp: formData.otp,
+      });
+
+      const payload = jwtDecode(res.data.token);
+      console.log('JWT Payload:', payload);
+
+      if (keepLoggedIn) {
+        localStorage.setItem('token', res.data.token);
+        localStorage.setItem('hd_user', JSON.stringify(res.data.user));
+      } else {
+        sessionStorage.setItem('token', res.data.token);
+        sessionStorage.setItem('hd_user', JSON.stringify(res.data.user));
+      }
+
+      toast.success('Login successful!');
+      setTimeout(() => navigate('/'), 1000);
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'OTP verification failed');
+    }
+  }
+};
+
 
   const resendOtp = async () => {
     if (resendTimer > 0) return;

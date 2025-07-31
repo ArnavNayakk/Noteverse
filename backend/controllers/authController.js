@@ -19,14 +19,18 @@ export const sendOtp = async (req, res) => {
   const otp = generateOTP();
   const otpExpiry = new Date(Date.now() + 5 * 60 * 1000); 
 
-  let user = await User.findOne({ email });
+let user = await User.findOne({ email });
 
   if (!user) {
-    user = new User({ email, name, dob, otp, otpExpiry });
-  } else {
-    user.otp = otp;
-    user.otpExpiry = otpExpiry;
+   if (!name || !dob) {
+    return res.status(404).json({ message: 'User not found. Please sign up first.' });
   }
+  user = new User({ email, name, dob, otp, otpExpiry });
+  } else {
+  user.otp = otp;
+  user.otpExpiry = otpExpiry;
+  }
+
 
   await user.save();
 
@@ -80,7 +84,7 @@ export const verifyOtp = async (req, res) => {
 
   const user = await User.findOne({ email });
 
-  if (!user || user.otp !== otp || user.otpExpiry < new Date()) {
+  if (!user || !user.name || !user.dob || user.otp !== otp || user.otpExpiry < new Date()) {
     return res.status(400).json({ message: 'Invalid or expired OTP' });
   }
 
@@ -120,10 +124,10 @@ export const googleLogin = async (req, res) => {
 
     let user = await User.findOne({ email });
 
-    if (!user) {
-      user = new User({ email, name });
-      await user.save();
-    }
+   if (!user) {
+    return res.status(400).json({ message: 'User not found. Please sign up first.' });
+   }
+
 
     const token = generateToken(user._id);
 
@@ -141,4 +145,10 @@ export const googleLogin = async (req, res) => {
     console.error('Google login error:', err);
     return res.status(401).json({ message: 'Invalid Google token' });
   }
+};
+
+export const checkUser = async (req, res) => {
+  const { email } = req.body;
+  const user = await User.findOne({ email });
+  res.status(200).json({ exists: !!(user && user.name && user.dob) });
 };
