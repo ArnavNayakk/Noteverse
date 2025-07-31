@@ -75,7 +75,7 @@ function Login() {
           otp: formData.otp,
         });
 
-        const payload = jwtDecode(token);
+        const payload = jwtDecode(res.data.token);
         console.log('JWT Payload:', payload);
 
 

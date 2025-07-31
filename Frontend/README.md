@@ -1,4 +1,6 @@
+
 # Notes App - MERN Stack 
+
 
 This is a full-stack notes-taking application built with the MERN stack (MongoDB, Express.js, React, Node.js). The app supports login via Gmail OTP and Google OAuth. Users can create, view, and delete their personal notes after authentication.
 

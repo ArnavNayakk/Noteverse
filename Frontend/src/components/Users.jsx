@@ -58,7 +58,7 @@ const fetchNotes = async () => {
 
     const { data } = await axios.post(
       `${BACKEND_URL}/api/notes`,
-      { text: 'New note' },
+      { text: 'Write your note here....' },
       {
         headers: {
           Authorization: `Bearer ${token}`,
