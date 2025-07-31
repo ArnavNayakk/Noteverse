@@ -175,8 +175,8 @@ const fetchNotes = async () => {
             >
               <div className="flex-1">
                 {expandedNoteIndex === index && !note.isSaved ? (
-                  <textarea
-                    className="w-full border-none outline-none text-gray-800 text-base overflow-hidden resize-none"
+                 <textarea
+                    className="w-full border-none outline-none text-gray-800 text-base overflow-hidden resize-none whitespace-pre-wrap break-all"
                     placeholder="Write your note..."
                     value={note.text}
                     onChange={(e) => handleNoteChange(index, e.target.value)}
@@ -191,15 +191,18 @@ const fetchNotes = async () => {
                       }
                     }}
                   />
+
                 ) : (
                   <p
-                    className={`text-gray-800 text-base cursor-pointer ${
-                      expandedNoteIndex === index ? '' : 'line-clamp-3'
+                    className={`text-gray-800 text-base cursor-pointer whitespace-pre-wrap break-all ${
+                      expandedNoteIndex === index ? 'max-h-[300px] overflow-auto' : 'line-clamp-3'
                     }`}
                     onClick={() => toggleExpandNote(index)}
-                  >
+                   >
                     {note.text}
                   </p>
+
+
                 )}
               </div>
 
